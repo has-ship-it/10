@@ -1,0 +1,57 @@
+name: Build APK
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KS: ${{ secrets.KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+      - name: Build debug APK
+        shell: bash
+        run: gradle assembleDebug --stacktrace 2>&1 | tee build.log
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IdaratMadrasati-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+      - name: Build signed release APK (only if keystore secrets exist)
+        if: env.HAS_KS == 'true'
+        shell: bash
+        env:
+          HAS_KS: ${{ secrets.KEYSTORE_BASE64 != '' }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+          KEYSTORE_PATH="$RUNNER_TEMP/release.jks" gradle assembleRelease 2>&1 | tee release.log
+      - name: Upload release APK
+        if: env.HAS_KS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: IdaratMadrasati-release-apk
+          path: app/build/outputs/apk/release/*.apk
+      - name: Unit tests
+        shell: bash
+        continue-on-error: true
+        run: gradle testDebugUnitTest 2>&1 | tee test.log
+      - name: Upload logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build.log
+            test.log

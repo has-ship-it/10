@@ -1,0 +1,7 @@
+<resources>
+  <string name="app_name">إدارة مدرستي</string>
+  <string name="students">الطلاب</string><string name="staff">الكادر</string><string name="today_attendance">الحضور اليومي</string>
+  <string name="teachers_attendance">حضور المعلمين</string><string name="mark_all">تسجيل حضور الجميع</string><string name="save">حفظ</string>
+  <string name="present">حاضر</string><string name="absent">غائب</string><string name="late">متأخر</string><string name="leave">إجازة</string>
+  <string name="empty_staff">لا يوجد موظفون بعد. أضف أول موظف من سجل الملاك.</string>
+</resources>
